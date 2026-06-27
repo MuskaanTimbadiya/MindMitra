@@ -131,7 +131,7 @@ export default function Mindfulness({ profile }) {
     filter.frequency.value = 750;
 
     const gainNode = ctx.createGain();
-    gainNode.gain.value = 0.14;
+    gainNode.gain.value = 0.22; // louder rain
 
     source.connect(filter);
     filter.connect(gainNode);
@@ -162,7 +162,7 @@ export default function Mindfulness({ profile }) {
     filter.frequency.value = 350;
 
     const gainNode = ctx.createGain();
-    gainNode.gain.value = 0.08;
+    gainNode.gain.value = 0.13; // louder wind
 
     const filterLfo = ctx.createOscillator();
     filterLfo.frequency.value = 0.15;
@@ -205,7 +205,7 @@ export default function Mindfulness({ profile }) {
     filter.frequency.value = 130;
 
     const gainNode = ctx.createGain();
-    gainNode.gain.value = 0.08;
+    gainNode.gain.value = 0.12; // louder hum
 
     osc1.connect(filter);
     osc2.connect(filter);

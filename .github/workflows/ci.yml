@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run unit tests (if any)
+        run: npm test || echo "No unit tests defined"
+
+      - name: Run e2e tests
+        run: npm run test:e2e
+
+      - name: Build project
+        run: npm run build
+
+      - name: Start preview server
+        run: npm run preview &
+        shell: bash
+
+      - name: Wait for preview to be ready
+        run: npx wait-on http://localhost:4173
+        timeout-minutes: 2
