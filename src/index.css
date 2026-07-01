@@ -1496,3 +1496,72 @@ body {
   }
 }
 
+/* ── MOBILE RESPONSIVE ── */
+@media (max-width: 600px) {
+  /* Adjust layout for small screens */
+  .glass-panel {
+    padding: 12px;
+    font-size: 0.9rem;
+  }
+
+  .glass-button {
+    width: 100%;
+    margin-bottom: 8px;
+    padding: 10px 14px;
+    font-size: 0.9rem;
+  }
+
+  .speaker-button {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+  }
+
+  .mindfulness-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .pmr-step-card {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px 16px;
+  }
+
+  .pmr-step-num {
+    margin: 0 auto 8px;
+  }
+
+  .stitch-bottomnav {
+    height: 56px;
+  }
+
+  .stitch-bottomnav-btn {
+    padding: 6px 2px;
+    font-size: 0.75rem;
+  }
+}
+
+/* Mobile‑friendly helpline support box */
+@media (max-width: 600px) {
+  .helpline-grid {
+    grid-template-columns: 1fr; /* single column */
+    gap: 12px;
+  }
+  .helpline-item {
+    padding: 20px;
+  }
+  .helpline-name {
+    font-size: 1rem;
+  }
+  .helpline-phone {
+    font-size: 1.3rem;
+  }
+  .helpline-note {
+    font-size: 0.85rem;
+  }
+  /* Modal full‑width on small screens */
+  .modal-content {
+    max-width: 90vw;
+    margin: 0 5vw;
+  }
+}

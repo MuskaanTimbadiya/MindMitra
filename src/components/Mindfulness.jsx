@@ -235,13 +235,11 @@ export default function Mindfulness({ profile }) {
     source.buffer = noiseBuffer;
     source.loop = true;
 
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.value = 500;
-
     const gainNode = ctx.createGain();
-    gainNode.gain.value = 0.15; // moderate forest ambience
+    gainNode.gain.value = 0.35; // louder forest ambience
 
+    // Adjust filter for clearer high frequencies
+    filter.frequency.value = 800;
     source.connect(filter);
     filter.connect(gainNode);
     gainNode.connect(ctx.destination);
