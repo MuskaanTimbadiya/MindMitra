@@ -219,6 +219,38 @@ export default function Mindfulness({ profile }) {
     setActiveSound('hum');
   };
 
+  // Forest ambience (synthesized wind-like sound)
+  const playForest = (ctx) => {
+    const bufferSize = 2 * ctx.sampleRate;
+    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const output = noiseBuffer.getChannelData(0);
+    let lastOut = 0.0;
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1;
+      output[i] = (lastOut + (0.02 * white)) / 1.02;
+      lastOut = output[i];
+      output[i] *= 2.5;
+    }
+    const source = ctx.createBufferSource();
+    source.buffer = noiseBuffer;
+    source.loop = true;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 500;
+
+    const gainNode = ctx.createGain();
+    gainNode.gain.value = 0.15; // moderate forest ambience
+
+    source.connect(filter);
+    filter.connect(gainNode);
+    gainNode.connect(ctx.destination);
+
+    source.start(0);
+    activeSourcesRef.current.push(source);
+    setActiveSound('forest');
+  };
+
   const handleToggleSound = (soundType) => {
     if (activeSound === soundType) {
       stopAllSounds();
@@ -243,6 +275,32 @@ export default function Mindfulness({ profile }) {
     } catch (e) {
       console.error("Failed to play synthesized sound:", e);
     }
+  };
+
+    // Speech synthesis utility with empathic voice and toggle
+  const [activeUtterance, setActiveUtterance] = React.useState(null);
+  const readText = (text) => {
+    if (!('speechSynthesis' in window)) return;
+    // If currently speaking same text, stop
+    if (window.speechSynthesis.speaking && activeUtterance?.text === text) {
+      window.speechSynthesis.cancel();
+      setActiveUtterance(null);
+      return;
+    }
+    // Cancel any ongoing speech before starting new
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = lang;
+    // Choose an empathic voice if available
+    const voices = window.speechSynthesis.getVoices();
+    const empathic = voices.find(v => /female|Emma|Olivia|Samantha|Victoria/i.test(v.name)) || null;
+    if (empathic) utter.voice = empathic;
+    // Slightly slower, warm pitch for empathy
+    utter.rate = 0.75;
+    utter.pitch = 1.2;
+    utter.onend = () => setActiveUtterance(null);
+    window.speechSynthesis.speak(utter);
+    setActiveUtterance(utter);
   };
 
   const handleBreathingToggle = () => {
@@ -491,6 +549,14 @@ export default function Mindfulness({ profile }) {
                 >
                   {getTranslationText(lang, 'soundHum')}
                 </button>
+                <button
+                  className={`glass-button ${activeSound === 'forest' ? 'active' : ''}`}
+                  onClick={() => handleToggleSound('forest')}
+                  id="btn-sound-forest"
+                  style={{ borderRadius: '24px', padding: '10px 20px', fontSize: '0.85rem' }}
+                >
+                  {getTranslationText(lang, 'soundForest')}
+                </button>
               </div>
 
               {activeSound && (
@@ -533,10 +599,18 @@ export default function Mindfulness({ profile }) {
                   style={{ cursor: 'pointer' }}
                 >
                   <div className="pmr-step-num">{idx + 1}</div>
-                  <div className="pmr-step-content">
-                    <span className="pmr-step-title">{step.title}</span>
-                    <span className="pmr-step-desc">{step.desc}</span>
-                  </div>
+                    <div className="pmr-step-content">
+                      <span className="pmr-step-title">{step.title}</span>
+                      <span className="pmr-step-desc">{step.desc}</span>
+                      <button
+                        className={`glass-button speaker-button ${activeUtterance?.text === step.desc && window.speechSynthesis.speaking ? 'active' : ''}`}
+                        onClick={(e) => { e.stopPropagation(); readText(step.desc); }}
+                        style={{ marginLeft: '8px', fontSize: '0.75rem', transition: 'background 0.3s' }}
+                        aria-label="Read aloud"
+                      >
+                        🔊
+                      </button>
+                    </div>
                 </div>
               ))}
             </div>
