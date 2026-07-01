@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+pysqlcipher3
+cryptography
+click
+google-antigravity-sdk
+mcp-sdk
