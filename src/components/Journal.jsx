@@ -28,6 +28,25 @@ export default function Journal({ profile, onAddCustomAction }) {
       if (result.isCritical) {
         setCriticalAlert(true);
       }
+
+      // Sync to local SQLite-backed MCP server
+      try {
+        const mcpUrl = import.meta.env.VITE_MCP_URL || 'http://localhost:8000';
+        await fetch(`${mcpUrl}/log_journal`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            text: text,
+            mood_score: result.moodScore || 6,
+            timestamp: new Date().toISOString()
+          })
+        });
+        window.dispatchEvent(new Event('mcp_mood_updated'));
+      } catch (err) {
+        console.error('Failed to log journal entry to MCP:', err);
+      }
     }
   };
 

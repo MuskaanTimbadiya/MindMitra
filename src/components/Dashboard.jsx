@@ -7,6 +7,62 @@ export default function Dashboard({ profile, onSelectTab, tasks, onToggleTask })
   const [selectedMood, setSelectedMood] = useState(localStorage.getItem('mindspace_mood') || '');
   const [streak, setStreak] = useState(parseInt(localStorage.getItem('mindspace_streak') || '3', 10));
 
+  const [moodHistory, setMoodHistory] = useState([]);
+  const [daysRange, setDaysRange] = useState(7);
+  const [mcpStatus, setMcpStatus] = useState('loading'); // 'connected', 'offline', 'loading'
+
+  const fetchMoodHistory = async (range = daysRange) => {
+    const mcpUrl = import.meta.env.VITE_MCP_URL || 'http://localhost:8000';
+    try {
+      // Perform health check first
+      const healthResp = await fetch(`${mcpUrl}/health`);
+      if (!healthResp.ok) throw new Error('Unhealthy');
+      
+      const historyResp = await fetch(`${mcpUrl}/mood_history?days=${range}`);
+      if (!historyResp.ok) throw new Error('Failed to fetch history');
+      
+      const data = await historyResp.json();
+      setMoodHistory(data);
+      setMcpStatus('connected');
+      localStorage.setItem(`mindspace_cached_moods_${range}`, JSON.stringify(data));
+    } catch (err) {
+      console.warn('MCP server offline, falling back to local sandbox data:', err);
+      setMcpStatus('offline');
+      const cached = localStorage.getItem(`mindspace_cached_moods_${range}`);
+      if (cached) {
+        setMoodHistory(JSON.parse(cached));
+      } else {
+        // Generate beautiful baseline mock data if no cache exists
+        const mockPoints = [];
+        const base = new Date();
+        for (let i = range - 1; i >= 0; i--) {
+          const date = new Date(base.getTime() - i * 24 * 60 * 60 * 1000);
+          const wave = Math.sin(i * 0.8) * 3 + 6 + (Math.random() - 0.5) * 2;
+          const score = Math.max(1, Math.min(10, Math.round(wave)));
+          mockPoints.push({
+            mood_score: score,
+            timestamp: date.toISOString(),
+            text: i % 2 === 0 ? "Felt study anxiety but resolved it" : "Quick mood check-in"
+          });
+        }
+        setMoodHistory(mockPoints);
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchMoodHistory(daysRange);
+    
+    const handleUpdate = () => {
+      fetchMoodHistory(daysRange);
+    };
+    window.addEventListener('mcp_mood_updated', handleUpdate);
+    return () => {
+      window.removeEventListener('mcp_mood_updated', handleUpdate);
+    };
+  }, [daysRange]);
+
+
   const lang = profile?.language || 'en';
 
   // Localized breaks list
@@ -56,9 +112,36 @@ export default function Dashboard({ profile, onSelectTab, tasks, onToggleTask })
     setQuote(MOCK_QUOTES[idx]);
   }, []);
 
-  const handleMoodSelect = (mood) => {
+  const handleMoodSelect = async (mood) => {
     setSelectedMood(mood);
     localStorage.setItem('mindspace_mood', mood);
+    
+    // Map mood string to 1-10 score
+    const moodScores = {
+      Motivated: 10,
+      Calm: 8,
+      Anxious: 4,
+      Overwhelmed: 3,
+      Exhausted: 2
+    };
+    const score = moodScores[mood] || 5;
+
+    // Log to local SQLite-backed MCP server
+    try {
+      const mcpUrl = import.meta.env.VITE_MCP_URL || 'http://localhost:8000';
+      await fetch(`${mcpUrl}/log_journal`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: `Quick check-in: ${mood}`,
+          mood_score: score,
+          timestamp: new Date().toISOString()
+        })
+      });
+      window.dispatchEvent(new Event('mcp_mood_updated'));
+    } catch (err) {
+      console.error('Failed to log mood check-in to MCP:', err);
+    }
     
     // Add to streak if mood checked in today
     const lastCheckin = localStorage.getItem('mindspace_last_checkin');
@@ -222,6 +305,76 @@ export default function Dashboard({ profile, onSelectTab, tasks, onToggleTask })
           )}
         </div>
 
+        {/* Mood Timeline Visualization */}
+        <div className="glass-panel mood-timeline-card" id="mood-timeline-panel" style={{ marginTop: '20px', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+            <div>
+              <h3 style={{ fontSize: '1.1rem', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                📊 {lang === 'hi' ? 'मनोदशा समयरेखा' : lang === 'ta' ? 'மனநிலை காலவரிசை' : lang === 'hinglish' ? 'Mood Timeline' : 'Mood Timeline'}
+                <span style={{ 
+                  fontSize: '0.7rem', 
+                  padding: '3px 8px', 
+                  borderRadius: '12px', 
+                  fontWeight: 500,
+                  background: mcpStatus === 'connected' ? 'rgba(107, 167, 131, 0.12)' : 'rgba(213, 137, 124, 0.12)',
+                  color: mcpStatus === 'connected' ? 'var(--success)' : 'var(--accent-warm)',
+                  border: mcpStatus === 'connected' ? '1px solid rgba(107, 167, 131, 0.3)' : '1px solid rgba(213, 137, 124, 0.3)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}>
+                  <span style={{ 
+                    width: '6px', 
+                    height: '6px', 
+                    borderRadius: '50%', 
+                    background: mcpStatus === 'connected' ? 'var(--success)' : 'var(--accent-warm)',
+                    display: 'inline-block'
+                  }}></span>
+                  {mcpStatus === 'connected' ? 'MCP SQLite Live' : 'Local Sandbox'}
+                </span>
+              </h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 300 }}>
+                {lang === 'hi' ? 'समय के साथ अपने मूड के रुझान को ट्रैक करें' : lang === 'ta' ? 'உங்கள் மனநிலை மாற்றங்களை கண்காணிக்கவும்' : lang === 'hinglish' ? 'Apne mood trends ko track karein' : 'Track your emotional patterns and preparation stress'}
+              </p>
+            </div>
+            
+            {/* Days Toggle Buttons */}
+            <div style={{ display: 'flex', gap: '6px', background: 'rgba(125, 107, 130, 0.05)', padding: '3px', borderRadius: '8px', border: '1px solid rgba(125, 107, 130, 0.1)' }}>
+              {[7, 30].map((days) => (
+                <button
+                  key={days}
+                  onClick={() => setDaysRange(days)}
+                  style={{
+                    padding: '4px 12px',
+                    fontSize: '0.75rem',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: daysRange === days ? 'var(--primary)' : 'transparent',
+                    color: daysRange === days ? '#ffffff' : 'var(--text-secondary)',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    transition: 'all var(--transition-fast)'
+                  }}
+                >
+                  {days} {lang === 'hi' ? 'दिन' : lang === 'ta' ? 'நாட்கள்' : lang === 'hinglish' ? 'Days' : 'Days'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* SVG Chart Container */}
+          <div style={{ position: 'relative', width: '100%', minHeight: '180px', background: 'rgba(255,255,255,0.2)', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.4)', padding: '10px', overflow: 'visible' }}>
+            {moodHistory.length === 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '160px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '32px', marginBottom: '8px', color: 'var(--text-muted)' }}>bar_chart</span>
+                {lang === 'hi' ? 'कोई मनोदशा डेटा उपलब्ध नहीं है।' : lang === 'ta' ? 'மனநிலை தரவு எதுவும் இல்லை' : 'No mood logs available yet. Check in above or write in your journal!'}
+              </div>
+            ) : (
+              <MoodChartSVG moodHistory={moodHistory} />
+            )}
+          </div>
+        </div>
+
         {/* 5-Min Recharge Breaks */}
         <div className="glass-panel" id="daily-tools">
           <h3 style={{ fontSize: '1.1rem', marginBottom: '4px' }}>
@@ -313,6 +466,202 @@ export default function Dashboard({ profile, onSelectTab, tasks, onToggleTask })
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function MoodChartSVG({ moodHistory }) {
+  const [hoveredIdx, setHoveredIdx] = React.useState(null);
+
+  // Layout parameters
+  const width = 500;
+  const height = 180;
+  const top = 15;
+  const bottom = 30;
+  const left = 75; // Extra padding for horizontal text labels
+  const right = 20;
+  
+  const usableWidth = width - left - right;
+  const usableHeight = height - top - bottom;
+
+  // 1. Sort chronological (oldest first)
+  const sortedHistory = [...moodHistory]
+    .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+  // 2. Generate points
+  const points = sortedHistory.map((p, idx) => {
+    const score = p.mood_score || 5;
+    const x = left + (idx * usableWidth) / Math.max(1, sortedHistory.length - 1);
+    const y = top + usableHeight - ((score - 1) * usableHeight) / 9; // score 1 to 10
+    return { 
+      x, 
+      y, 
+      score, 
+      date: new Date(p.timestamp),
+      text: p.text || ''
+    };
+  });
+
+  // 3. Line and Area paths
+  const pathD = points.map((p, idx) => `${idx === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+  const areaD = points.length > 0 
+    ? `${pathD} L ${points[points.length - 1].x} ${top + usableHeight} L ${points[0].x} ${top + usableHeight} Z` 
+    : '';
+
+  // 4. Grid lines values
+  // Reference levels (scores: 10, 8, 5, 2)
+  const gridLevels = [
+    { score: 10, label: 'Motivated 🔥' },
+    { score: 8, label: 'Calm 😌' },
+    { score: 5, label: 'Neutral 😐' },
+    { score: 2, label: 'Exhausted 🥱' }
+  ];
+
+  return (
+    <div style={{ position: 'relative', width: '100%', overflow: 'visible' }}>
+      <svg 
+        viewBox={`0 0 ${width} ${height}`} 
+        width="100%" 
+        height="100%" 
+        style={{ overflow: 'visible', display: 'block' }}
+      >
+        <defs>
+          {/* Smooth linear gradient for filled area */}
+          <linearGradient id="chart-gradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="var(--secondary)" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="var(--secondary)" stopOpacity="0.0" />
+          </linearGradient>
+        </defs>
+
+        {/* Y-Axis Grid Lines & Labels */}
+        {gridLevels.map((lvl) => {
+          const y = top + usableHeight - ((lvl.score - 1) * usableHeight) / 9;
+          return (
+            <g key={lvl.score}>
+              <line 
+                x1={left} 
+                y1={y} 
+                x2={width - right} 
+                y2={y} 
+                stroke="rgba(125, 107, 130, 0.08)" 
+                strokeDasharray="4 4" 
+              />
+              <text 
+                x={left - 8} 
+                y={y + 4} 
+                textAnchor="end" 
+                style={{ fontSize: '0.65rem', fill: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontWeight: 400 }}
+              >
+                {lvl.label}
+              </text>
+            </g>
+          );
+        })}
+
+        {/* Gradient Area under the line */}
+        {areaD && (
+          <path d={areaD} fill="url(#chart-gradient)" />
+        )}
+
+        {/* Main Line path */}
+        {pathD && (
+          <path 
+            d={pathD} 
+            fill="none" 
+            stroke="var(--secondary)" 
+            strokeWidth="2.5" 
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ filter: 'drop-shadow(0px 2px 4px rgba(74, 144, 164, 0.25))' }}
+          />
+        )}
+
+        {/* X-Axis labels (dates) */}
+        {points.map((p, idx) => {
+          // Render label only for key points to prevent overlap
+          const shouldShowLabel = 
+            points.length <= 7 || 
+            idx === 0 || 
+            idx === points.length - 1 || 
+            (points.length > 7 && points.length <= 15 && idx % 3 === 0) ||
+            (points.length > 15 && idx % 6 === 0);
+
+          if (!shouldShowLabel) return null;
+
+          return (
+            <text 
+              key={idx}
+              x={p.x} 
+              y={height - 8} 
+              textAnchor="middle" 
+              style={{ fontSize: '0.6rem', fill: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}
+            >
+              {p.date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+            </text>
+          );
+        })}
+
+        {/* Interactive Data points */}
+        {points.map((p, idx) => {
+          const isHovered = hoveredIdx === idx;
+          return (
+            <g key={idx}>
+              {/* Visible small marker dot */}
+              <circle 
+                cx={p.x} 
+                cy={p.y} 
+                r={isHovered ? 5.5 : 3.5} 
+                fill={isHovered ? 'var(--accent-warm)' : 'var(--secondary)'} 
+                stroke="var(--bg-deep)" 
+                strokeWidth={isHovered ? 2 : 1.5}
+                style={{ transition: 'all 0.15s ease' }}
+              />
+              
+              {/* Transparent larger hover trigger target for easy finger taps / mouse hovers */}
+              <circle 
+                cx={p.x} 
+                cy={p.y} 
+                r={12} 
+                fill="transparent" 
+                style={{ cursor: 'pointer' }}
+                onMouseEnter={() => setHoveredIdx(idx)}
+                onMouseLeave={() => setHoveredIdx(null)}
+              />
+            </g>
+          );
+        })}
+      </svg>
+
+      {/* HTML Tooltip (absolute positioned relative to chart wrapper) */}
+      {hoveredIdx !== null && points[hoveredIdx] && (
+        <div style={{
+          position: 'absolute',
+          left: `${Math.max(10, Math.min(width - 160, points[hoveredIdx].x - 75))}px`,
+          top: `${Math.max(0, points[hoveredIdx].y - 85)}px`,
+          width: '150px',
+          padding: '8px 10px',
+          borderRadius: '10px',
+          fontSize: '0.75rem',
+          zIndex: 10,
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(8px)',
+          border: '1px solid rgba(125, 107, 130, 0.2)',
+          boxShadow: '0 4px 16px rgba(125, 107, 130, 0.12)',
+          pointerEvents: 'none',
+          color: 'var(--text-primary)',
+          transition: 'top 0.15s ease, left 0.15s ease'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, marginBottom: '4px', borderBottom: '1px solid rgba(0,0,0,0.05)', paddingBottom: '2px' }}>
+            <span>Score: {points[hoveredIdx].score}/10</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.65rem' }}>
+              {points[hoveredIdx].date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+            </span>
+          </div>
+          <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: 1.3, wordBreak: 'break-word' }}>
+            "{points[hoveredIdx].text.length > 50 ? points[hoveredIdx].text.substring(0, 47) + '...' : points[hoveredIdx].text || 'Mood check-in'}"
+          </div>
+        </div>
+      )}
     </div>
   );
 }

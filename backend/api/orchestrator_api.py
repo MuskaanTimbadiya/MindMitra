@@ -4,7 +4,17 @@ from pydantic import BaseModel
 from typing import Dict, Any
 from ..agents.orchestrator import OrchestratorAgent
 
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Instantiate orchestrator (could inject config)
 orchestrator = OrchestratorAgent()

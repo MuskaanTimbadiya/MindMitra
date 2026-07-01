@@ -3,10 +3,23 @@ import '@testing-library/jest-dom';
 import App from './App';
 
 describe('Header UI – data-testid attributes', () => {
+  beforeEach(() => {
+    localStorage.setItem('mindspace_profile', JSON.stringify({
+      name: 'John Doe',
+      exam: 'NEET',
+      subjects: 'Physics',
+      language: 'en'
+    }));
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+  });
+
   test('renders all header test IDs', () => {
     render(<App />);
     // Brand name
-    expect(screen.getByText(/MindMitra/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/MindMitra/i)[0]).toBeInTheDocument();
     // Nav links
     expect(screen.getByTestId('nav-link-home')).toBeInTheDocument();
     expect(screen.getByTestId('nav-link-dailytools')).toBeInTheDocument();

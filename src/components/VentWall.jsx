@@ -185,7 +185,7 @@ export default function VentWall({ profile }) {
       <div className="vent-input-container" style={{ minHeight: '300px', justifyContent: 'center' }}>
         {isDissolving ? (
           <div className="glass-panel" style={{ width: '100%', maxWidth: '600px', background: 'rgba(0,0,0,0.3)' }}>
-            <canvas ref={canvasRef} style={{ width: '100%', display: 'block' }} id="vent-dissolve-canvas" />
+            <canvas ref={canvasRef} style={{ width: '100%', display: 'block' }} id="vent-dissolve-canvas" data-testid="vent-dissolve-canvas" />
           </div>
         ) : (
           <>

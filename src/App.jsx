@@ -95,16 +95,17 @@ export default function App() {
         {/* Desktop header nav — section anchors with Stitch animated underline hover */}
         <div className="stitch-topnav-links">
           {[
-            { label: 'Home', href: '#hero-section', action: (e) => { e.preventDefault(); setActiveTab('dashboard'); window.scrollTo({ top: 0, behavior: 'smooth' }); } },
-            { label: 'Daily Tools', href: '#daily-tools', action: (e) => { e.preventDefault(); setActiveTab('dashboard'); setTimeout(() => document.getElementById('daily-tools')?.scrollIntoView({ behavior: 'smooth' }), 100); } },
-            { label: 'Mindfulness', href: '#mindfulness-section', action: (e) => { e.preventDefault(); setActiveTab('mindfulness'); window.scrollTo({ top: 0, behavior: 'smooth' }); } },
-            { label: '🚨 Helplines', href: '#resources', action: (e) => { e.preventDefault(); setShowHelpline(true); } },
+            { label: 'Home', href: '#hero-section', testId: 'nav-link-home', action: (e) => { e.preventDefault(); setActiveTab('dashboard'); window.scrollTo({ top: 0, behavior: 'smooth' }); } },
+            { label: 'Daily Tools', href: '#daily-tools', testId: 'nav-link-dailytools', action: (e) => { e.preventDefault(); setActiveTab('dashboard'); setTimeout(() => document.getElementById('daily-tools')?.scrollIntoView({ behavior: 'smooth' }), 100); } },
+            { label: 'Mindfulness', href: '#mindfulness-section', testId: 'nav-link-mindfulness', action: (e) => { e.preventDefault(); setActiveTab('mindfulness'); window.scrollTo({ top: 0, behavior: 'smooth' }); } },
+            { label: '🚨 Helplines', href: '#resources', testId: 'nav-link-helplines', action: (e) => { e.preventDefault(); setShowHelpline(true); } },
           ].map(link => (
             <a
               key={link.label}
               className="stitch-topnav-link"
               href={link.href}
               onClick={link.action}
+              data-testid={link.testId}
             >
               {link.label}
               <span className="stitch-topnav-underline" />
@@ -116,13 +117,13 @@ export default function App() {
         <div className="stitch-topnav-actions">
           {/* Exam badge */}
           {profile.name && (
-            <div className="stitch-badge stitch-badge--exam">
+            <div className="stitch-badge stitch-badge--exam" data-testid="badge-exam">
               <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>school</span>
               {profile.exam}
             </div>
           )}
           {/* Streak badge */}
-          <div className="stitch-badge stitch-badge--streak">
+          <div className="stitch-badge stitch-badge--streak" data-testid="badge-streak">
             <span className="material-symbols-outlined" style={{ fontSize: '14px', fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
             {streak}
           </div>
@@ -132,6 +133,7 @@ export default function App() {
             onClick={() => setShowHelpline(true)}
             title="Helplines &amp; Notifications"
             id="trigger-helpline-btn"
+            data-testid="btn-notifications"
           >
             <span className="material-symbols-outlined">notifications</span>
           </button>
@@ -141,11 +143,12 @@ export default function App() {
             onClick={() => setShowSettings(true)}
             title="Settings"
             id="trigger-settings-btn"
+            data-testid="btn-settings"
           >
             <span className="material-symbols-outlined">settings</span>
           </button>
           {/* Avatar ring */}
-          <div className="stitch-avatar-ring">
+          <div className="stitch-avatar-ring" data-testid="avatar-ring">
             <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--secondary)', fontVariationSettings: "'FILL' 1" }}>person</span>
           </div>
         </div>

@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import VentWall from '../../components/VentWall';
+import VentWall from './VentWall';
 
 // Mock canvas
 import 'jest-canvas-mock';
@@ -10,10 +10,10 @@ describe('VentWall Component', () => {
     const profile = { language: 'en' };
     render(<VentWall profile={profile} />);
 
-    const textarea = screen.getByPlaceholderText(/What is on your mind\?\./i);
+    const textarea = screen.getByPlaceholderText(/I am terrified I won't clear/i);
     fireEvent.change(textarea, { target: { value: 'I am feeling stressed' } });
 
-    const dissolveBtn = screen.getByRole('button', { name: /Vent/i });
+    const dissolveBtn = screen.getByRole('button', { name: /Release & Dissolve/i });
     fireEvent.click(dissolveBtn);
 
     // Canvas should appear

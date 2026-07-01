@@ -1,24 +1,24 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import VentWall from '../../components/VentWall';
-import Mindfulness from '../../components/Mindfulness';
+import VentWall from './VentWall';
+import Mindfulness from './Mindfulness';
 
 const translations = {
   en: {
-    ventTitle: 'Vent',
+    ventTitle: 'The MindMitra Vent Wall',
     mindfulnessTitle: 'Square Box Breathing'
   },
   hi: {
-    ventTitle: 'वेंट',
+    ventTitle: 'माइंडमित्रा विसर्जन दीवार',
     mindfulnessTitle: 'स्क्वायर बॉक्स ब्रीदिंग'
   },
   hinglish: {
-    ventTitle: 'Vent',
+    ventTitle: 'MindMitra Vent Wall',
     mindfulnessTitle: 'Square Box Breathing'
   },
   ta: {
-    ventTitle: 'வெண்ட்',
-    mindfulnessTitle: 'சதுர பெட்டியில் மூச்சு'
+    ventTitle: 'மைண்ட்மித்ரா கவலை கரைப்பான்',
+    mindfulnessTitle: 'சதுர பெட்டி சுவாசம் (Box Breathing)'
   }
 };
 
@@ -34,9 +34,9 @@ describe('Language Switching UI', () => {
       );
 
       // Check vent title exists (Vent component uses translation key 'ventTitle')
-      expect(screen.getByText(new RegExp(ventTitle, 'i'))).toBeInTheDocument();
+      expect(screen.getByText(ventTitle)).toBeInTheDocument();
       // Check mindfulness title exists
-      expect(screen.getByText(new RegExp(mindfulnessTitle, 'i'))).toBeInTheDocument();
+      expect(screen.getByText(mindfulnessTitle)).toBeInTheDocument();
     });
   });
 });

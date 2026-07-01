@@ -5,7 +5,19 @@ import os
 import datetime
 from ..security.encryption import get_db_connection
 
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI()
+
+# Enable CORS for frontend integration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 # Pydantic models for request/response
 class JournalEntry(BaseModel):

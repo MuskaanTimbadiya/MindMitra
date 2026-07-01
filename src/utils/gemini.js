@@ -45,6 +45,7 @@ Analyze the student's daily journal entry or thoughts. You MUST respond with a J
 5. "mindfulnessExercise": (string) A short 2-5 min physical/breathing grounding technique.
 6. "tenMinuteAction": (string) One small, doable action they can take in the next 10 minutes.
 7. "isCritical": (boolean) Set to true if the student shows signs of severe distress, hopelessness, or self-harm ideation.
+8. "moodScore": (number from 1 to 10) representing the overall mood score of the student's journal entry, where 1 is extremely low/distressed/exhausted and 10 is extremely positive/motivated/calm.
 
 CRITICAL: If "isCritical" is true, the tone should remain extremely gentle, warm, and encourage speaking to a parent, teacher, or counselor immediately.
 

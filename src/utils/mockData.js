@@ -94,6 +94,13 @@ export const getMockResponse = (journalText, examName = "JEE") => {
   // Detect critical issues
   const isCritical = text.includes("suicide") || text.includes("self harm") || text.includes("kill myself") || text.includes("end my life") || text.includes("hopeless") && (text.includes("live") || text.includes("die") || text.includes("quit"));
 
+  // Estimate mock mood score based on category
+  let moodScore = 7;
+  if (isCritical) moodScore = 1;
+  else if (category === "burnout") moodScore = 3;
+  else if (category === "parents") moodScore = 4;
+  else if (category !== "general") moodScore = 5;
+
   return {
     analysis: {
       stressTriggers: category === "parents" ? "Parental expectations and comparison anxiety" : category === "burnout" ? "Cognitive exhaustion and sleep deprivation" : `Academic anxiety related to ${category} in ${examName} prep.`,
@@ -102,7 +109,8 @@ export const getMockResponse = (journalText, examName = "JEE") => {
       personalizedCoping: selected.personalizedCoping,
       mindfulnessExercise: selected.mindfulnessExercise,
       tenMinuteAction: selected.tenMinuteAction,
-      isCritical: isCritical
+      isCritical: isCritical,
+      moodScore: moodScore
     }
   };
 };

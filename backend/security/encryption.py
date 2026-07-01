@@ -56,3 +56,39 @@ def _ensure_schema(conn: sqlite3.Connection) -> None:
         );
     ''')
     conn.commit()
+
+    # Seed mock database if empty
+    cur.execute("SELECT count(*) FROM journal;")
+    if cur.fetchone()[0] == 0:
+        import datetime
+        import random
+        base_time = datetime.datetime.utcnow()
+        # Seed 15 entries over the past 30 days
+        mood_examples = [
+            ("Did a mock test today, physics was tough but chemistry went well.", 7),
+            ("Feeling a bit anxious about the upcoming revision test.", 4),
+            ("Burned out after 10 hours of study. Need sleep.", 3),
+            ("Had a great discussion with a friend. Feeling motivated!", 9),
+            ("Revised all organic naming reactions. Super calm now.", 8),
+            ("Syllabus is overwhelming. Too many topics left.", 3),
+            ("Cleared all coordinate geometry doubts today.", 9),
+            ("Woke up early, meditated for 10 minutes. Very peaceful.", 8),
+            ("Struggling with organic reaction mechanisms.", 5),
+            ("Took a full mock test, scored below my expectation. Demotivated.", 4),
+            ("Chai break helped a lot. Back to studying physics.", 7),
+            ("Feeling extremely exhausted today, taking it light.", 2),
+            ("Solved 20 hard integration questions, feeling on fire!", 10),
+            ("Had a minor panic attack about NEET cutoff, but did box breathing.", 5),
+            ("Parents encouraged me today, feeling supported and calm.", 8)
+        ]
+        for idx, (text, score) in enumerate(mood_examples):
+            # Spread them out: e.g. idx * 2 days ago
+            days_ago = idx * 2
+            ts = base_time - datetime.timedelta(days=days_ago)
+            ts_str = ts.strftime('%Y-%m-%d %H:%M:%S')
+            cur.execute(
+                "INSERT INTO journal (text, mood_score, timestamp) VALUES (?,?,?)",
+                (text, score, ts_str)
+            )
+        conn.commit()
+

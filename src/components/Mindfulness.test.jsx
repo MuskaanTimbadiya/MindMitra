@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import Mindfulness from '../../components/Mindfulness';
+import Mindfulness from './Mindfulness';
 
 describe('Mindfulness Component', () => {
   test('renders breathing title and toggles breathing session', async () => {
