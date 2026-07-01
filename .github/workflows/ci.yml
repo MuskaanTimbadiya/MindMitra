@@ -28,9 +28,6 @@ jobs:
       - name: Run unit tests (if any)
         run: npm test || echo "No unit tests defined"
 
-      - name: Run e2e tests
-        run: npm run test:e2e
-
       - name: Build project
         run: npm run build
 
@@ -41,3 +38,6 @@ jobs:
       - name: Wait for preview to be ready
         run: npx wait-on http://127.0.0.1:4173
         timeout-minutes: 2
+
+      - name: Run e2e tests
+        run: npm run test:e2e
