@@ -1,103 +1,161 @@
 # MindMitra – AI‑Powered Wellness Companion for Indian Exam Aspirants 🎓✨
 
-> **MindMitra** is a modern, glassmorphic web app that helps JEE, NEET, UPSC, CAT & other aspirants stay calm, organized and motivated with AI‑driven journaling, mindfulness tools, study‑trackers and instant helpline access.
+> **MindMitra** is a modern, glassmorphic web companion designed specifically for Indian exam aspirants (JEE, NEET, UPSC, CAT, etc.). It addresses the severe academic pressure, burnout, and isolation of competitive exams using an empathetic AI-driven journal, multi-agent diagnosis, real-time activity tracking, interactive mindfulness tools, and local data persistence via a Model Context Protocol (MCP) server.
 
 ---
 
-## ✨ Key Features
-- **Stitch Design System** – sleek glass‑morphic UI, animated sea‑foam underlines, vibrant color palette, mobile‑first layout.
-- **Top‑navbar & Sidebar** – section anchors (Home, Daily Tools, Mindfulness, Helplines) + quick‑action badges (exam, streak, notifications, settings, avatar).
-- **Daily Tools** – multi‑language AI journal (Gemini 2.5 Flash), exam‑specific advice, mood‑check & vent‑wall.
-- **Mindfulness Studio** – box breathing, progressive muscle relaxation, body‑scan with soothing soundscapes.
-- **Vent Wall** – canvas‑based particle dissolve animation for emotional release.
-- **Safety Card** – one‑tap access to Vandrevala, AASRA & other crisis helplines.
-- **Multilingual UI** – English, Hindi, Tamil & Hinglish via `utils/translations.js`.
-- **Responsive** – mobile bottom navigation, swipe gestures, sticky header on scroll.
-- **WebGL Shader Background** – calming floating blob effect.
+## 📌 The Problem
+
+Indian competitive exams like JEE, NEET, and UPSC are among the most stressful in the world, with millions of students competing for a tiny fraction of seats. Key challenges include:
+- **Severe Academic Pressure**: Constant fear of failure and comparison anxiety.
+- **Burnout**: Exhausting study schedules (12–14 hours/day) that lead to chronic fatigue.
+- **Emotional Isolation**: Students feel unable to share their fears with parents or peers.
+- **Lack of Immediate Coping Strategies**: Few actionable, culturally relevant ways to destress or self-regulate in high-stakes moments.
+
+## 💡 The Solution
+
+**MindMitra** acts as a virtual "mitra" (friend) to walk with students through their preparation:
+1. **Vibe Check (AI Journal)**: An empathetic journaling space powered by Gemini 2.5 Flash. It translates thoughts into structured wellness diagnostics (stress triggers, emotional patterns, Hindi/Tamil sibling advice, and 10-minute actionable tasks).
+2. **Multi-Agent Diagnostics**: An orchestration engine consisting of 5 specialized agents that verify safety, analyze burnout logs, evaluate stress levels, and generate customized coping strategies.
+3. **Model Context Protocol (MCP) Integration**: Connects to a local SQLite-backed MCP server to log mood states, enabling persistent history, 7-day and 30-day timeline charts, and connection health states.
+4. **Interactive Vent Wall**: A canvas-based particle simulation where students type their toxic thoughts and watch them dissolve into stardust.
+5. **Mindfulness Studio**: Guided breathing (box breathing, muscle relaxation) to rapidly calm the nervous system before study sessions.
+
+---
+
+## 🏛️ Architecture & Data Flow
+
+MindMitra utilizes a distributed, multi-agent design consisting of a React frontend, a FastAPI orchestrator backend, and a FastAPI SQLite MCP server.
+
+```mermaid
+graph TD
+    %% Frontend Layer
+    subgraph Frontend [React + Vite Client]
+        UI[Glassmorphic Web UI]
+        GeminiClient[Gemini 2.5 Flash SDK]
+        Timeline[Mood Timeline Chart]
+    end
+
+    %% Backend Layer
+    subgraph Backend [FastAPI Multi-Agent Backend]
+        OrchAPI[Orchestrator API :8001]
+        
+        subgraph Agents [Antigravity Multi-Agent System]
+            CG[CrisisGuardAgent]
+            OrchAgent[OrchestratorAgent]
+            SD[StressDetectorAgent]
+            SB[StudyBalanceAgent]
+            CC[CopingCoachAgent]
+        end
+    end
+
+    %% MCP Database Layer
+    subgraph Storage [SQLite MCP Server :8000]
+        MCPServer[FastAPI MCP Server]
+        DB[(SQLite Database)]
+    end
+
+    %% Interactions
+    UI -->|1. Direct Empathetic Analysis| GeminiClient
+    UI -->|2. Parallel Agent Trace request| OrchAPI
+    UI -->|3. Log mood/check-in| MCPServer
+    
+    OrchAPI -->|Executes watchdogs & diagnostics| Agents
+    CG -->|Scan safety first| OrchAgent
+    SB -->|Fetch historical logs| MCPServer
+    MCPServer -->|Read/Write logs| DB
+    
+    OrchAPI -->|Return agent execution trace| UI
+    MCPServer -->|Return historical data| Timeline
+```
+
+### The 5 Specialized Agents:
+1. **CrisisGuardAgent** 🛡️: Scans for crisis keywords first. If flagged, it immediately returns crisis safety hotlines and bypasses all other agents.
+2. **OrchestratorAgent** 🧠: Coordinates specialist agents and aggregates trace payloads.
+3. **StressDetectorAgent** 🔍: Classifies academic stress levels and flags hidden fatigue signals.
+4. **StudyBalanceAgent** 📊: Reviews recent study hours from the MCP history to check for burnout risks.
+5. **CopingCoachAgent** 💡: Recommends specific study-life boundary adjustment tactics.
 
 ---
 
 ## 🛠️ Tech Stack
-| Layer | Tech |
+
+| Layer | Technology |
 |---|---|
-| **Framework** | React 18 (hooks) + Vite 5 |
-| **Styling** | Vanilla CSS with custom `stitch-` design tokens |
-| **AI** | Google Gemini 2.5 Flash (via `src/utils/gemini.js`)
-| **Icons** | Material Symbols Outlined |
-| **Build** | Vite (ESBuild) |
-| **Deployment** | Vercel (static SPA) |
-| **Version Control** | GitHub |
+| **Frontend Framework** | React 18 + Vite 4 |
+| **Styling & Theming** | Vanilla CSS (with premium `stitch-` design tokens) |
+| **AI Processing** | Google Gemini 2.5 Flash (Client-side translation & advice) |
+| **Agentic SDK** | Google Antigravity SDK (Agent orchestration) |
+| **Backend Framework** | FastAPI (Orchestrator & SQLite MCP API) |
+| **Database** | SQLite3 (Persistent logging) |
+| **Testing** | Vitest + Happy-DOM (Unit testing), Playwright (E2E testing) |
 
 ---
 
-## 🚀 Getting Started (Local Development)
+## 🚀 Getting Started & Setup
+
+### 1. Clone & Install Dependencies
 ```bash
-# 1. Clone the repo
+# Clone the repository
 git clone https://github.com/MuskaanTimbadiya/MindMitra.git
 cd MindMitra
 
-# 2. Install dependencies
+# Install frontend dependencies
 npm install
-
-# 3. Create a .env file (do NOT commit it!)
-cp .env.example .env
-# Edit .env and insert your Gemini API key:
-# VITE_GEMINI_API_KEY=your_gemini_api_key_here
-
-# 4. Run the dev server
-npm run dev
-# Open http://localhost:5173 in your browser
 ```
 
----
-
-## 📦 Build & Deploy
+### 2. Configure Environment Variables
+Create a `.env` file in the root folder (or copy from `.env.example`):
 ```bash
-npm run build   # creates the static “dist” folder
+cp .env.example .env
 ```
-The generated files are ready for any static‑host. For Vercel we ship a **`vercel.json`** that rewrites all routes to `index.html` so React routing works.
+Inside `.env`, add your Gemini API Key:
+```env
+VITE_GEMINI_API_KEY=your_gemini_api_key_here
+VITE_MCP_URL=http://localhost:8000
+VITE_ORCHESTRATOR_URL=http://localhost:8001
+```
+
+### 3. Run the Services (Docker Compose)
+The easiest way to start both the Python agent backend and the SQLite MCP server is via Docker Compose:
+```bash
+docker-compose up --build
+```
+This launches:
+- **MCP Server** on `http://localhost:8000`
+- **Orchestrator API** on `http://localhost:8001`
+
+### 4. Start the Frontend Dev Server
+In a separate terminal tab, run the React client:
+```bash
+npm run dev
+```
+Open **`http://localhost:5173`** in your browser.
 
 ---
 
-## 🔐 Environment Variables
-- `VITE_GEMINI_API_KEY` – **Required**. Your Gemini API key. **Never commit** this value.
-- The project ships an `.env.example` to show the required key.
-- `.env` is already added to `.gitignore`.
+## 🧪 Testing
+
+### Running Unit Tests (Vitest)
+Unit tests cover headers, badges, languages, the Vent Wall particle canvas, and the Agent Activity Feed:
+```bash
+npm run test
+```
+
+### Running E2E Tests (Playwright)
+Ensure the preview server is compiled and running:
+```bash
+# Build & start preview
+npm run build
+npm run preview
+
+# In another terminal, run playwright tests
+npm run test:e2e
+```
 
 ---
 
-## 🌐 Deploy to Vercel (One‑click)
-1. Visit **[vercel.com/new](https://vercel.com/new)** and import the `MindMitra` repository.
-2. In **Environment Variables**, add:
-   - **Key:** `VITE_GEMINI_API_KEY`
-   - **Value:** *your Gemini key*
-   - Enable for **Production**, **Preview**, and **Development**.
-3. Confirm the framework preset is **Vite**, build command `npm run build`, output dir `dist`.
-4. Click **Deploy** – Vercel will build and give you a live URL (e.g., `https://mindmitra.vercel.app`).
-
----
-
-## 🎨 Design System – “Stitch”
-- **Glass‑morphism** – background blur, translucent panels.
-- **Animated Underlines** – sea‑foam `#90dbf4` slide on hover.
-- **Badges** – exam badge (`school` icon) & streak badge (`local_fire_department`).
-- **Avatar Ring** – filled `person` icon with secondary teal ring.
-- **Typography** – `Plus Jakarta Sans` for headings, `Manrope` for body text.
-- All components live under the `stitch-` CSS namespace.
-
----
-
-## 🤝 Contributing
-1. Fork the repo.
-2. Create a feature branch (`git checkout -b feat/your‑feature`).
-3. Follow the existing coding style, run `npm run lint` (Oxlint) before committing.
-4. Open a Pull Request – describe the change and reference any related issue.
-
----
-
-## 📄 License
-This project is licensed under the **MIT License** – see the `LICENSE` file for details.
-
----
-
-**Enjoy a calmer study life with MindMitra!**
+## 🎨 Stitch Design Tokens
+* **Primary Theme**: Deep cosmic purple (`#0e0b16`) and rich obsidian (`#1b1528`).
+* **Accent Palette**: Glowing teal (`#4ab0a4`), warm sunset amber (`#d5897c`), and soft lavender (`#e0b0ff`).
+* **Glass-morphism**: Translucent panels using `backdrop-filter: blur(12px)` and subtle white borders (`rgba(255,255,255,0.08)`).

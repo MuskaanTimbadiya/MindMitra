@@ -31,13 +31,9 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Start preview server
-        run: npm run preview &
+      - name: Start preview and run E2E tests
+        run: |
+          npm run preview &
+          npx wait-on http://127.0.0.1:4173 --timeout 60000
+          npm run test:e2e
         shell: bash
-
-      - name: Wait for preview to be ready
-        run: npx wait-on http://127.0.0.1:4173
-        timeout-minutes: 2
-
-      - name: Run e2e tests
-        run: npm run test:e2e
