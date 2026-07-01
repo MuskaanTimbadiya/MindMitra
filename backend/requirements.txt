@@ -1,8 +1,8 @@
 fastapi
 uvicorn[standard]
 python-dotenv
-pysqlcipher3
+# pysqlcipher3 (disabled, not needed for plain SQLite)
 cryptography
 click
-google-antigravity-sdk
-mcp-sdk
+# google-antigravity-sdk (provided locally, not a pip package)
+# mcp-sdk (provided locally, not a pip package)
