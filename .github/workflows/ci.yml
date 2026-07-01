@@ -39,5 +39,5 @@ jobs:
         shell: bash
 
       - name: Wait for preview to be ready
-        run: npx wait-on http://localhost:4173
+        run: npx wait-on http://127.0.0.1:4173
         timeout-minutes: 2
