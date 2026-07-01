@@ -14,5 +14,9 @@ export default defineConfig({
     environment: 'happy-dom',
     setupFiles: './src/setupTests.js',
     exclude: ['**/node_modules/**', '**/dist/**', '**/e2e/**'],
+  },
+  preview: {
+    host: '127.0.0.1',
+    port: 4173,
   }
 })
